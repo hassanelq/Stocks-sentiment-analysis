@@ -34,3 +34,13 @@ for submission in top_subreddit:
     topics_dict["body"].append(submission.selftext)
 
 topics_data = pd.DataFrame(topics_dict)
+
+
+def get_date(created):
+    return dt.datetime.fromtimestamp(created)
+
+
+_timestamp = topics_data["created"].apply(get_date)
+topics_data = topics_data.assign(timestamp=_timestamp)
+
+print(topics_data)
