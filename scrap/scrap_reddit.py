@@ -1,19 +1,18 @@
-# reddit scapper using the secret key
-
 import praw
 import pandas as pd
 import datetime as dt
 
 # Reddit API credentials
 reddit = praw.Reddit(
-    client_id="yRpk1QZ515gSrfuFRJhaAg",
-    client_secret="ExT8MUDnH3GUOMB9d-Oq01ov2aU8eA",
+    client_id="P6oB-vE585YHt7TSTw_TAA",
+    client_secret="8oXVjhMyis5vgqF17_HTXqPQC13umg",
+    user_agent="Stocks sentiment analysis",
 )
 
-# Extracting data from Reddit
-subreddit = reddit.subreddit("learnpython")
-top_subreddit = subreddit.top(limit=500)
+# get 100 hot posts the previous two days , about AAPL stock
 
+subreddit = reddit.subreddit("AAPL")
+top_subreddit = subreddit.top(limit=100)
 topics_dict = {
     "title": [],
     "score": [],
@@ -34,13 +33,7 @@ for submission in top_subreddit:
     topics_dict["body"].append(submission.selftext)
 
 topics_data = pd.DataFrame(topics_dict)
-
-
-def get_date(created):
-    return dt.datetime.fromtimestamp(created)
-
-
-_timestamp = topics_data["created"].apply(get_date)
-topics_data = topics_data.assign(timestamp=_timestamp)
-
-print(topics_data)
+topics_data["created"] = topics_data["created"].apply(
+    lambda x: dt.datetime.fromtimestamp(x)
+)
+topics_data.to_csv("reddit_aapl.csv", index=False)
