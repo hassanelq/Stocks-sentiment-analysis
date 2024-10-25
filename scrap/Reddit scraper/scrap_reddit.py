@@ -41,15 +41,12 @@ def scrap_reddit(stock_name, days=7):
 
         posts.append(
             {
-                "subreddit": submission.subreddit.display_name,
+                # "subreddit": submission.subreddit.display_name,
                 "title": submission.title,
                 "selftext": submission.selftext,
+                "created_utc": created_utc,
                 "score": submission.score,
                 "num_comments": submission.num_comments,
-                "created_utc": created_utc,
-                "created_date": created_utc.strftime("%Y-%m-%d"),
-                "created_time": created_utc.strftime("%H:%M:%S"),
-                "permalink": f"https://reddit.com{submission.permalink}",
             }
         )
 
@@ -57,6 +54,6 @@ def scrap_reddit(stock_name, days=7):
 
 
 # Example usage
-df = scrap_reddit("BTC", days=1)
+df = scrap_reddit("AAPL", days=2)
 print(df)
 df.to_csv(f"reddit_{dt.datetime.now().strftime('%d')}.csv", index=False)
