@@ -57,45 +57,6 @@ def scrap_reddit(stock_name, days=7):
 
 
 # Example usage
-df = scrap_reddit("AAPL", days=3)
+df = scrap_reddit("BTC", days=1)
 print(df)
 df.to_csv(f"reddit_{dt.datetime.now().strftime('%d')}.csv", index=False)
-
-
-# def scrap_reddit(stock_name, num_posts):
-#     # Access the subreddit for the given stock name
-#     subreddit = reddit.subreddit(stock_name)
-
-#     # Get the latest posts from the subreddit, limited by num_posts
-#     new_subreddit = subreddit.new(limit=num_posts)
-
-#     # Dictionary to store the data we want to collect
-#     topics_dict = {
-#         "title": [],
-#         "score": [],
-#         "url": [],
-#         "comms_num": [],
-#         "created_date": [],
-#         "created_time": [],
-#         "body": [],
-#     }
-
-#     # Loop through the latest posts and collect the required information
-#     for submission in new_subreddit:
-#         topics_dict["title"].append(submission.title)
-#         topics_dict["score"].append(submission.score)
-#         topics_dict["url"].append(submission.url)
-#         topics_dict["comms_num"].append(submission.num_comments)
-#         topics_dict["created_date"].append(
-#             dt.datetime.fromtimestamp(submission.created).strftime("%Y-%m-%d")
-#         )
-#         topics_dict["created_time"].append(
-#             dt.datetime.fromtimestamp(submission.created).strftime("%H:%M:%S")
-#         )
-#         topics_dict["body"].append(submission.selftext)
-
-#     # Convert the dictionary to a pandas DataFrame
-#     topics_data = pd.DataFrame(topics_dict)
-
-#     # Save the DataFrame to a CSV file
-#     topics_data.to_csv(f"reddit_{stock_name}_{num_posts}.csv", index=False)
