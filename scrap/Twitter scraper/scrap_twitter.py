@@ -86,11 +86,10 @@ async def scrape_twitter(client, stock_name, days=1, max_tweets=500):
             tweet_count += 1
             posts.append(
                 {
-                    "username": tweet.user.name,
-                    "text": tweet.text,
+                    "tweet": tweet.text,
                     "created_at": created_at.strftime("%Y-%m-%d %H:%M"),
-                    "retweets": tweet.retweet_count,
                     "likes": tweet.favorite_count,
+                    "retweets": tweet.retweet_count,
                 }
             )
 
