@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import re
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
 tweets = pd.read_csv("twitterdata.csv")
 
 
@@ -72,8 +75,32 @@ def clean_twitter_data(df):
     return df
 
 
+# Optional: Remove near-duplicate tweets using fuzzy matching
+def remove_near_duplicates(df, similarity_threshold=0.9):
+    # Compute TF-IDF vectors for each tweet
+    tfidf = TfidfVectorizer().fit_transform(df["tweet"])
+    pairwise_sim = cosine_similarity(tfidf)
+
+    # Create a mask to identify duplicates
+    to_drop = set()
+    for idx in range(pairwise_sim.shape[0]):
+        if idx in to_drop:
+            continue
+        duplicates = np.where(pairwise_sim[idx] > similarity_threshold)[0]
+        duplicates = [i for i in duplicates if i != idx]
+        to_drop.update(duplicates)
+
+    # Drop near-duplicate tweets
+    df = df.drop(df.index[list(to_drop)])
+    df = df.reset_index(drop=True)
+    return df
+
+
 # Example usage
 cleaned_df = clean_twitter_data(tweets)
+
+# Use the function after cleaning
+cleaned_df = remove_near_duplicates(cleaned_df)
 
 # Save cleaned data to a new CSV file
 cleaned_df.to_csv("cleaned_twitter_data.csv", index=False)
