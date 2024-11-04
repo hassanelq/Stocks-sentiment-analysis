@@ -39,14 +39,12 @@ def scrap_reddit(stock_name, days=7):
         if created_utc < since_time:
             continue  # Skip posts older than the specified number of days
 
+        combined_text = f"{submission.title} {submission.selftext}"
+
         posts.append(
             {
-                # "subreddit": submission.subreddit.display_name,
-                "title": submission.title,
-                "selftext": submission.selftext,
-                "created_utc": created_utc,
-                "score": submission.score,
-                "num_comments": submission.num_comments,
+                "date": created_utc,
+                "text": combined_text,
             }
         )
 
@@ -54,6 +52,5 @@ def scrap_reddit(stock_name, days=7):
 
 
 # Example usage
-df = scrap_reddit("AAPL", days=2)
-print(df)
-df.to_csv(f"reddit_{dt.datetime.now().strftime('%d')}.csv", index=False)
+df = scrap_reddit("TSLA", days=3)
+df.to_csv(f"reddit_TSLA_{dt.datetime.now().strftime('%d')}.csv", index=False)

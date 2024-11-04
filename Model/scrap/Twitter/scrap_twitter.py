@@ -24,7 +24,7 @@ def authenticate_client():
 
 # Construct the search query for the specified stock
 def construct_query(stock_name):
-    return f'"{stock_name}" lang:en min_faves:20 lang:en -filter:links -filter:replies'
+    return f'"{stock_name}" lang:en min_faves:20 -filter:links -filter:replies'
 
 
 # Fetch tweets, with rate limit handling
@@ -86,10 +86,10 @@ async def scrape_twitter(client, stock_name, days=1, max_tweets=500):
             tweet_count += 1
             posts.append(
                 {
-                    "tweet": tweet.text,
-                    "created_at": created_at.strftime("%Y-%m-%d %H:%M"),
-                    "likes": tweet.favorite_count,
-                    "retweets": tweet.retweet_count,
+                    "date": created_at.strftime("%Y-%m-%d %H:%M"),
+                    "text": tweet.text,
+                    # "likes": tweet.favorite_count,
+                    # "retweets": tweet.retweet_count,
                 }
             )
 
@@ -123,8 +123,8 @@ async def main(stock_name, days=1, max_tweets=100):
 
 # Example usage
 if __name__ == "__main__":
-    stock_name = "AAPL"  # Replace with the stock or keyword to search for
-    days = 2  # Number of days to go back
+    stock_name = "TSLA"  # Replace with the stock or keyword to search for
+    days = 3  # Number of days to go back
     max_tweets = 500  # Maximum number of tweets to collect
 
     asyncio.run(main(stock_name, days, max_tweets))
