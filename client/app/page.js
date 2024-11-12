@@ -1,101 +1,163 @@
-import Image from "next/image";
+// pages/index.js (or app/page.js if using Next.js 13 App Router)
+
+"use client";
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [selectedPlatforms, setSelectedPlatforms] = useState({
+    reddit: false,
+    twitter: false,
+    finviz: false,
+  });
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState({});
+  const [stockSymbol, setStockSymbol] = useState("");
+  const [days, setDays] = useState(3); // Added state for 'days'
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleCheckboxChange = (e) => {
+    const { name, checked } = e.target;
+    setSelectedPlatforms((prev) => ({
+      ...prev,
+      [name]: checked,
+    }));
+  };
+
+  const handleScrap = async () => {
+    setLoading(true);
+    setResults({});
+    const platforms = Object.keys(selectedPlatforms).filter(
+      (platform) => selectedPlatforms[platform]
+    );
+
+    const promises = platforms.map(async (platform) => {
+      try {
+        const response = await fetch(`/api/scrap?platform=${platform}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            stock: stockSymbol,
+            days: parseInt(days, 10),
+            max_tweets: 100,
+          }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return { platform, count: data.length };
+        } else {
+          const errorData = await response.json();
+          return { platform, error: errorData.error || "Failed to fetch data" };
+        }
+      } catch (error) {
+        return { platform, error: error.message };
+      }
+    });
+
+    const resultsArray = await Promise.all(promises);
+    const resultsObj = {};
+    resultsArray.forEach((result) => {
+      resultsObj[result.platform] = result;
+    });
+    setResults(resultsObj);
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-gray-800 text-white shadow-lg rounded-lg p-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Stock Data Scraper
+        </h1>
+        <div className="mb-5">
+          <label className="block font-medium mb-2">Stock Symbol:</label>
+          <input
+            type="text"
+            className="w-full border border-gray-700 bg-gray-700 rounded p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={stockSymbol}
+            onChange={(e) => setStockSymbol(e.target.value)}
+            placeholder="Enter stock symbol (e.g., TSLA)"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className="mb-5">
+          <label className="block font-medium mb-2">Number of Days:</label>
+          <input
+            type="number"
+            min="1"
+            className="w-full border border-gray-700 bg-gray-700 rounded p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={days}
+            onChange={(e) => setDays(e.target.value)}
+            placeholder="Enter number of days to scrape (e.g., 3)"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        </div>
+        <div className="mb-5">
+          <label className="block font-medium mb-2">Select Platforms:</label>
+          <div className="space-y-3">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="reddit"
+                checked={selectedPlatforms.reddit}
+                onChange={handleCheckboxChange}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <span className="ml-2">Reddit</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="twitter"
+                checked={selectedPlatforms.twitter}
+                onChange={handleCheckboxChange}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <span className="ml-2">Twitter</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="finviz"
+                checked={selectedPlatforms.finviz}
+                onChange={handleCheckboxChange}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <span className="ml-2">Finviz</span>
+            </label>
+          </div>
+        </div>
+        <button
+          onClick={handleScrap}
+          disabled={
+            loading ||
+            !stockSymbol ||
+            !Object.values(selectedPlatforms).includes(true)
+          }
+          className={`w-full py-2 px-4 rounded text-white font-semibold ${
+            loading ||
+            !stockSymbol ||
+            !Object.values(selectedPlatforms).includes(true)
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {loading ? "Scraping..." : "Scrap"}
+        </button>
+        {Object.keys(results).length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-4 text-center">Results:</h2>
+            {Object.values(results).map((result) => (
+              <div key={result.platform} className="mb-3">
+                <h3 className="font-medium capitalize">{result.platform}:</h3>
+                {result.error ? (
+                  <p className="text-red-400">Error: {result.error}</p>
+                ) : (
+                  <p>Number of texts: {result.count}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

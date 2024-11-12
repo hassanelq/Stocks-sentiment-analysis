@@ -1,10 +1,20 @@
 # Filename: main.py
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scrap import Scrap
 
 app = FastAPI()
+
+# Add the following CORS middleware configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can specify the exact origins instead of "*"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Request model for the scrap endpoint
