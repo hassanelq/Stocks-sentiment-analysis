@@ -117,18 +117,3 @@ def clean_text_data(df, text_column="text", similarity_threshold=0.9):
     df = df.reset_index(drop=True)
 
     return df
-
-
-twitter_df = pd.read_csv("data/twitter_TSLA_04-11-2024.csv")
-reddit_df = pd.read_csv("data/reddit_TSLA_04.csv")
-finviz_df = pd.read_csv("data/TSLA_news.csv")
-
-# Clean each data source
-cleaned_twitter_df = clean_text_data(twitter_df, text_column="text")
-cleaned_reddit_df = clean_text_data(reddit_df, text_column="text")
-cleaned_finviz_df = clean_text_data(finviz_df, text_column="text")
-
-# Save to CSV if needed
-cleaned_twitter_df.to_csv("cleaned_twitter.csv", index=False)
-cleaned_reddit_df.to_csv("cleaned_reddit.csv", index=False)
-cleaned_finviz_df.to_csv("cleaned_finviz.csv", index=False)
