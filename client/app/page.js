@@ -10,9 +10,9 @@ export default function Home() {
     finviz: false,
   });
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState({});
+  const [results, setResults] = useState(null); // Changed to null for better conditional rendering
   const [stockSymbol, setStockSymbol] = useState("");
-  const [days, setDays] = useState(3); // Added state for 'days'
+  const [days, setDays] = useState(3);
 
   const handleCheckboxChange = (e) => {
     const { name, checked } = e.target;
@@ -24,42 +24,36 @@ export default function Home() {
 
   const handleScrap = async () => {
     setLoading(true);
-    setResults({});
+    setResults(null);
     const platforms = Object.keys(selectedPlatforms).filter(
       (platform) => selectedPlatforms[platform]
     );
 
-    const promises = platforms.map(async (platform) => {
-      try {
-        const response = await fetch(`/api/scrap?platform=${platform}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            stock: stockSymbol,
-            days: parseInt(days, 10),
-            max_tweets: 100,
-          }),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          return { platform, count: data.length };
-        } else {
-          const errorData = await response.json();
-          return { platform, error: errorData.error || "Failed to fetch data" };
-        }
-      } catch (error) {
-        return { platform, error: error.message };
-      }
-    });
+    try {
+      const response = await fetch(`/api/scrap`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          stock: stockSymbol,
+          platforms: platforms,
+          days: parseInt(days, 10),
+          max_tweets: 100,
+        }),
+      });
 
-    const resultsArray = await Promise.all(promises);
-    const resultsObj = {};
-    resultsArray.forEach((result) => {
-      resultsObj[result.platform] = result;
-    });
-    setResults(resultsObj);
+      if (response.ok) {
+        const data = await response.json();
+        setResults(data);
+      } else {
+        const errorData = await response.json();
+        setResults({ error: errorData.error || "Failed to fetch data" });
+      }
+    } catch (error) {
+      setResults({ error: error.message });
+    }
+
     setLoading(false);
   };
 
@@ -142,19 +136,44 @@ export default function Home() {
         >
           {loading ? "Scraping..." : "Scrap"}
         </button>
-        {Object.keys(results).length > 0 && (
+
+        {results && (
           <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-4 text-center">Results:</h2>
-            {Object.values(results).map((result) => (
-              <div key={result.platform} className="mb-3">
-                <h3 className="font-medium capitalize">{result.platform}:</h3>
-                {result.error ? (
-                  <p className="text-red-400">Error: {result.error}</p>
-                ) : (
-                  <p>Number of texts: {result.count}</p>
-                )}
+            {results.error ? (
+              <div>
+                <h2 className="text-xl font-semibold mb-4 text-center text-red-400">
+                  Error
+                </h2>
+                <p className="text-center">{results.error}</p>
               </div>
-            ))}
+            ) : (
+              <div>
+                <h2 className="text-xl font-semibold mb-4 text-center">
+                  Prediction:
+                </h2>
+                <p className="text-center">{results.prediction}</p>
+                {/* Optional: Display sentiment data */}
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium mb-2">Sentiment Data:</h3>
+                  <div className="max-h-64 overflow-y-auto bg-gray-700 p-4 rounded">
+                    {results.data.map((item, index) => (
+                      <div key={index} className="mb-3">
+                        <p className="text-sm">
+                          <strong>Date:</strong> {item.date}
+                        </p>
+                        <p className="text-sm">
+                          <strong>Text:</strong> {item.text}
+                        </p>
+                        <p className="text-sm">
+                          <strong>Sentiment:</strong> {item.sentiment_label} (
+                          {item.sentiment_score.toFixed(2)})
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

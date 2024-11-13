@@ -1,12 +1,11 @@
+// app/api/scrap/route.js
+
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
-  const { searchParams } = new URL(request.url);
-  const platform = searchParams.get("platform");
+  const { stock, platforms, days, max_tweets } = await request.json();
 
-  const { stock, days, max_tweets } = await request.json();
-
-  const apiUrl = `http://127.0.0.1:8000/scrap/${platform}`;
+  const apiUrl = `http://127.0.0.1:8000/scrap`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -14,7 +13,7 @@ export async function POST(request) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ stock, days, max_tweets }),
+      body: JSON.stringify({ stock, platforms, days, max_tweets }),
     });
 
     if (response.ok) {

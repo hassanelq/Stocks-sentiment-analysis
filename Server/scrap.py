@@ -16,6 +16,8 @@ import nltk
 from nltk.corpus import stopwords
 import emoji
 
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+
 
 class Scrap:
     def __init__(self):
@@ -275,3 +277,66 @@ class Scrap:
         df = df.reset_index(drop=True)
 
         return df
+
+    def analyze_sentiment(self, df, text_column="text"):
+        # Load FinBERT tokenizer and model
+        tokenizer = AutoTokenizer.from_pretrained("yiyanghkust/finbert-tone")
+        model = AutoModelForSequenceClassification.from_pretrained(
+            "yiyanghkust/finbert-tone"
+        )
+
+        # Set up the sentiment analysis pipeline
+        sentiment_analysis = pipeline(
+            "sentiment-analysis", model=model, tokenizer=tokenizer
+        )
+
+        # Define the maximum token length for FinBERT
+        max_length = 512
+
+        # Function to truncate text that exceeds the maximum token length
+        def truncate_text(text):
+            # Tokenize and keep only the allowed length
+            tokens = tokenizer.encode(text, truncation=True, max_length=max_length)
+            return tokenizer.decode(tokens, skip_special_tokens=True)
+
+        # Apply sentiment analysis to each truncated text entry
+        sentiments = df[text_column].apply(
+            lambda text: sentiment_analysis(truncate_text(text))[0]
+        )
+
+        # Extract sentiment label and score from the result
+        df["sentiment_label"] = sentiments.apply(lambda x: x["label"].lower())
+        df["sentiment_score"] = sentiments.apply(lambda x: x["score"])
+
+        # Aggregate the sentiment labels
+        sentiment_counts = df["sentiment_label"].value_counts()
+
+        # Debugging output
+        print("Sentiment counts:", sentiment_counts)
+
+        # Determine overall sentiment
+        positive = sentiment_counts.get("positive", 0)
+        negative = sentiment_counts.get("negative", 0)
+        neutral = sentiment_counts.get("neutral", 0)
+
+        total = positive + negative + neutral
+
+        if total == 0:
+            overall_sentiment = "neutral"
+        else:
+            if positive > negative:
+                overall_sentiment = "positive"
+            elif negative > positive:
+                overall_sentiment = "negative"
+            else:
+                overall_sentiment = "neutral"
+
+        # Decide whether stock will go up or down based on overall sentiment
+        if overall_sentiment == "positive":
+            prediction = "The stock is predicted to go UP based on the sentiments."
+        elif overall_sentiment == "negative":
+            prediction = "The stock is predicted to go DOWN based on the sentiments."
+        else:
+            prediction = "The stock sentiment is NEUTRAL."
+
+        return df, prediction
