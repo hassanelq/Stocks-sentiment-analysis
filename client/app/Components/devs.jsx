@@ -24,7 +24,7 @@ const Contributors = () => (
           role="Developer"
           photo="/images/Achraf.jpeg"
           socials={{
-            linkedin: "https://www.linkedin.com/in/achraf-hajji/",
+            linkedin: "https://www.linkedin.com/in/achraf-hajji-a271ab241/",
             github: "https://github.com/hajji-achraf/",
           }}
         />
