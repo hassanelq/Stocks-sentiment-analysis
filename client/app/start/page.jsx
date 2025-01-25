@@ -3,10 +3,15 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 
-// Dynamic import for Chart.js or Recharts (placeholder for visualization)
-const SentimentChart = dynamic(() => import("./SentimentChart"), {
-  ssr: false,
-});
+// Dynamic imports for Charts
+const SentimentDistributionChart = dynamic(
+  () => import("../components/Charts/SentimentDistributionChart"),
+  { ssr: false }
+);
+const SentimentTimelineChart = dynamic(
+  () => import("../components/Charts/SentimentTimelineChart"),
+  { ssr: false }
+);
 
 export default function Home() {
   const [selectedPlatforms, setSelectedPlatforms] = useState({
@@ -42,7 +47,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           stock: stockSymbol,
-          platforms: platforms,
+          platforms,
           days: parseInt(days, 10),
           max_tweets: 100,
         }),
@@ -62,33 +67,55 @@ export default function Home() {
     setLoading(false);
   };
 
+  // --------------------------------------------------------------------
+  // OPTIONAL: You can do some client-side stats calculations here
+  // if your API returns an array of items with { sentiment_label, sentiment_score, date, ... }
+  //
+  // For example, to compute total counts of each label:
+  const getSentimentCounts = () => {
+    if (!results?.data) return { positive: 0, negative: 0, neutral: 0 };
+    const counts = { positive: 0, negative: 0, neutral: 0 };
+    results.data.forEach((item) => {
+      counts[item.sentiment_label] = (counts[item.sentiment_label] || 0) + 1;
+    });
+    return counts;
+  };
+
+  const getAverageScore = () => {
+    if (!results?.data?.length) return 0;
+    const total = results.data.reduce(
+      (acc, item) => acc + (item.sentiment_score || 0),
+      0
+    );
+    return (total / results.data.length).toFixed(3);
+  };
+
+  const counts = getSentimentCounts();
+  const avgScore = getAverageScore();
+  // --------------------------------------------------------------------
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl bg-gray-900 rounded-xl shadow-xl p-8">
-        <h1 className="text-4xl font-extrabold mb-6 text-center">
-          Stock Prediction App
-        </h1>
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="mb-6">
+    <div className="min-h-screen px-6 py-10 bg-gray-50">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Inputs Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md md:col-span-1">
+          <h2 className="text-xl font-bold mb-4">Input Parameters</h2>
+          <div className="mb-4">
             <label className="block font-medium mb-2">Stock Symbol:</label>
             <input
               type="text"
-              className="w-full border border-gray-700 bg-gray-800 rounded p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={stockSymbol}
               onChange={(e) => setStockSymbol(e.target.value)}
               placeholder="Enter stock symbol (e.g., TSLA)"
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block font-medium mb-2">Number of Days:</label>
             <input
               type="number"
               min="1"
-              className="w-full border border-gray-700 bg-gray-800 rounded p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={days}
               onChange={(e) => setDays(e.target.value)}
               placeholder="Enter number of days (e.g., 3)"
@@ -96,7 +123,7 @@ export default function Home() {
           </div>
           <div className="mb-6">
             <label className="block font-medium mb-2">Select Platforms:</label>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-2">
               {["reddit", "twitter", "finviz"].map((platform) => (
                 <label
                   key={platform}
@@ -114,9 +141,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={handleScrap}
             disabled={
               loading ||
@@ -127,57 +152,90 @@ export default function Home() {
               loading ||
               !stockSymbol ||
               !Object.values(selectedPlatforms).includes(true)
-                ? "bg-gray-600 cursor-not-allowed"
+                ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {loading ? "Scraping..." : "Scrap & Predict"}
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
 
-        {results && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mt-8"
-          >
-            {results.error ? (
-              <div className="text-red-500 text-center">
-                <h2 className="text-2xl font-bold">Error</h2>
+        {/* Results Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md md:col-span-2">
+          <h2 className="text-xl font-bold mb-4">Results</h2>
+          {results ? (
+            results.error ? (
+              <div className="text-red-500">
+                <h3 className="text-lg font-bold">Error:</h3>
                 <p>{results.error}</p>
               </div>
             ) : (
               <div>
-                <h2 className="text-2xl font-bold text-center">
-                  Prediction Results
-                </h2>
-                <div className="text-gray-400 mt-4">
-                  <p>
+                <h3 className="text-lg font-bold">Prediction Summary</h3>
+                <ul className="text-gray-700 mb-6">
+                  <li>
                     <strong>Stock:</strong> {stockSymbol.toUpperCase()}
-                  </p>
-                  <p>
+                  </li>
+                  <li>
                     <strong>Platforms:</strong>{" "}
                     {Object.keys(selectedPlatforms)
                       .filter((platform) => selectedPlatforms[platform])
                       .join(", ")}
-                  </p>
-                  <p>
+                  </li>
+                  <li>
                     <strong>Prediction:</strong> {results.prediction}
-                  </p>
-                </div>
-                {results.data && (
-                  <div className="mt-6">
-                    <h3 className="text-xl font-bold">Sentiment Overview:</h3>
-                    <div className="mt-4">
-                      <SentimentChart data={results.data} />
-                    </div>
+                  </li>
+                </ul>
+
+                {/* Additional Stats */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold">Detailed Stats:</h4>
+                  <div className="mt-2 space-y-1">
+                    <p>
+                      <strong>Total Posts/Tweets:</strong>{" "}
+                      {results.data?.length ?? 0}
+                    </p>
+                    <p>
+                      <strong>Positive:</strong> {counts.positive}
+                    </p>
+                    <p>
+                      <strong>Negative:</strong> {counts.negative}
+                    </p>
+                    <p>
+                      <strong>Neutral:</strong> {counts.neutral}
+                    </p>
+                    <p>
+                      <strong>Average Sentiment Score:</strong> {avgScore}
+                    </p>
                   </div>
+                </div>
+
+                {/* CHARTS */}
+                {results.data && results.data.length > 0 ? (
+                  <>
+                    <h4 className="text-lg font-semibold mb-4">
+                      Sentiment Distribution
+                    </h4>
+                    <SentimentDistributionChart data={results.data} />
+
+                    <div className="mt-8" />
+
+                    <h4 className="text-lg font-semibold mb-4">
+                      Sentiment Over Time
+                    </h4>
+                    <SentimentTimelineChart data={results.data} />
+                  </>
+                ) : (
+                  <p className="text-gray-500">No data to display charts.</p>
                 )}
               </div>
-            )}
-          </motion.div>
-        )}
+            )
+          ) : (
+            <p className="text-gray-500">
+              Enter parameters and run the prediction to view results.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

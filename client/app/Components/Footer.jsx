@@ -14,12 +14,20 @@ const Footer = () => (
             rel="noopener noreferrer"
           >
             Hassan EL QADI
+          </a>{" "}
+          X{" "}
+          <a
+            href="https://www.linkedin.com/in/achraf-hajji-a271ab241/"
+            className="text-blue-600 hover:underline transition"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Achraf HAJJI
           </a>
-          .
         </p>
 
         {/* Social Links */}
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           <a
             href="https://www.linkedin.com/in/el-qadi/"
             target="_blank"
@@ -80,7 +88,7 @@ const Footer = () => (
               <path d="M12 2a10 10 0 0 0-10 10 10 10 0 1 0 10-10zm0 2c2.1 0 4 .81 5.47 2.13a12.29 12.29 0 0 0-10.94 0A8 8 0 0 1 12 4zM4 12c0-1.67.56-3.21 1.5-4.47a10.23 10.23 0 0 1 13 0A7.96 7.96 0 1 1 4 12zm7.5 6.33a2 2 0 1 1 4 0 2 2 0 0 1-4 0z" />
             </svg>
           </a>
-        </div>
+        </div> */}
       </div>
     </div>
   </footer>
