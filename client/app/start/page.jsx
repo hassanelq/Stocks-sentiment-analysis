@@ -4,11 +4,11 @@ import dynamic from "next/dynamic";
 
 // Dynamic imports for Charts
 const SentimentDistributionChart = dynamic(
-  () => import("../components/Charts/SentimentDistributionChart"),
+  () => import("../Components/Charts/SentimentDistributionChart"),
   { ssr: false }
 );
 const SentimentTimelineChart = dynamic(
-  () => import("../components/Charts/SentimentTimelineChart"),
+  () => import("../Components/Charts/SentimentTimelineChart"),
   { ssr: false }
 );
 
