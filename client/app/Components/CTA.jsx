@@ -28,7 +28,7 @@ const CTA = () => (
 );
 
 const SectionWrapper = ({ children, className = "" }) => (
-  <section className={`py-16 ${className}`}>{children}</section>
+  <section className={`py-4 ${className}`}>{children}</section>
 );
 
 export default CTA;
