@@ -4,9 +4,9 @@ import datetime as dt
 
 # Reddit API credentials
 reddit = praw.Reddit(
-    client_id="P6oB-vE585YHt7TSTw_TAA",
-    client_secret="8oXVjhMyis5vgqF17_HTXqPQC13umg",
-    user_agent="Stocks sentiment analysis",
+    client_id="XXX",
+    client_secret="XXX",
+    user_agent="XXX",
 )
 
 

@@ -18,15 +18,24 @@ import emoji
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
+# importing os module for environment variables
+import os
+
+# importing necessary functions from dotenv library
+from dotenv import load_dotenv, dotenv_values
+
+# loading variables from .env file
+load_dotenv()
+
 
 class Scrap:
     def __init__(self):
         self.data = []
         # Initialize Reddit client
         self.reddit = praw.Reddit(
-            client_id="P6oB-vE585YHt7TSTw_TAA",
-            client_secret="8oXVjhMyis5vgqF17_HTXqPQC13umg",
-            user_agent="Stocks sentiment analysis",
+            client_id=os.getenv("REDDIT_CLIENT_ID"),
+            client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
+            user_agent=os.getenv("REDDIT_USER_AGENT"),
         )
         # Initialize Twitter client
         self.twitter_client = Client(language="en-US")
