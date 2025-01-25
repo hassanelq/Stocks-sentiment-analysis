@@ -1,9 +1,12 @@
-/* styles/globals.css */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  @apply bg-gray-900 text-gray-200 font-sans;
+  background-color: white;
+  color: black;
+}
+
+.custom-screen {
+  @apply max-w-screen-xl mx-auto px-4 md:px-8;
 }
