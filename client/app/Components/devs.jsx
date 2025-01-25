@@ -22,7 +22,7 @@ const Contributors = () => (
         <ContributorCard
           name="Achraf HAJJI"
           role="Developer"
-          photo="/images/Hassan.jpeg"
+          photo="/images/Achraf.jpeg"
           socials={{
             linkedin: "https://www.linkedin.com/in/achraf-hajji/",
             github: "https://github.com/hajji-achraf/",
