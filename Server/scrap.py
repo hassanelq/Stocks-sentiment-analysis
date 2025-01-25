@@ -39,7 +39,9 @@ class Scrap:
         )
         # Initialize Twitter client
         self.twitter_client = Client(language="en-US")
-        self.twitter_client.load_cookies("cookies.json")
+        self.twitter_client.load_cookies(
+            "cookies.json"
+        )  # Load existing cookies for authentication twitter
         # Ensure NLTK stopwords are downloaded
         try:
             nltk.data.find("corpora/stopwords")
