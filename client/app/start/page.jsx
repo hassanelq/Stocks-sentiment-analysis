@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
 
 // Dynamic imports for Charts
 const SentimentDistributionChart = dynamic(
@@ -55,7 +54,7 @@ export default function Home() {
 
       if (response.ok) {
         const data = await response.json();
-        setResults(data);
+        setResults(data); // Set the data in the React state
       } else {
         const errorData = await response.json();
         setResults({ error: errorData.error || "Failed to fetch data" });
@@ -163,11 +162,17 @@ export default function Home() {
         {/* Results Section */}
         <div className="bg-white p-6 rounded-lg shadow-md md:col-span-2">
           <h2 className="text-xl font-bold mb-4">Results</h2>
+
           {results ? (
             results.error ? (
               <div className="text-red-500">
                 <h3 className="text-lg font-bold">Error:</h3>
-                <p>{results.error}</p>
+                {/* Safely render the error message */}
+                <p>
+                  {typeof results.error === "string"
+                    ? results.error
+                    : JSON.stringify(results.error)}
+                </p>
               </div>
             ) : (
               <div>

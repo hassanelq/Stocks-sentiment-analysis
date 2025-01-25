@@ -12,7 +12,7 @@ from random import randint
 from bs4 import BeautifulSoup
 
 # Reddit
-import praw
+import asyncpraw
 
 # Twitter
 from twikit import Client, TooManyRequests
@@ -50,7 +50,7 @@ class Scrap:
           - NLTK resources
         """
         self.data = []
-        self.reddit = praw.Reddit(
+        self.reddit = asyncpraw.Reddit(
             client_id=os.getenv("REDDIT_CLIENT_ID"),
             client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
             user_agent=os.getenv("REDDIT_USER_AGENT"),
@@ -66,62 +66,52 @@ class Scrap:
 
         self.stop_words = set(stopwords.words("english"))
 
-    ############################################################################
-    #                           REDDIT SCRAPING
-    ############################################################################
+        ############################################################################
+        #                           REDDIT SCRAPING
+        ############################################################################
 
-    def scrap_reddit(self, stock_name, days=7):
-        """
-        Scrapes Reddit for mentions of `stock_name` within the past `days`.
-        Returns a DataFrame with columns: [date, text, upvotes]
-        """
-        posts = []
-        now = datetime.utcnow()
-        since_time = now - timedelta(days=days)
+        async def scrap_reddit(self, stock_name, days=7):
+            """
+            Scrapes Reddit for mentions of `stock_name` within the past `days`.
+            Returns a DataFrame with columns: [date, text, upvotes]
+            """
+            posts = []
+            now = datetime.utcnow()
+            since_time = now - timedelta(days=days)
 
-        # Use the search query with a time_filter if it fits the PRAW scheme
-        # Valid time_filters: 'hour', 'day', 'week', 'month', 'year', 'all'
-        # We'll pick 'week' if days <=7, else 'month' or 'year'
-        if days <= 7:
-            time_filter = "week"
-        elif days <= 30:
-            time_filter = "month"
-        elif days <= 365:
-            time_filter = "year"
-        else:
-            time_filter = "all"
+            # Use the search query with asyncpraw
+            if days <= 7:
+                time_filter = "week"
+            elif days <= 30:
+                time_filter = "month"
+            elif days <= 365:
+                time_filter = "year"
+            else:
+                time_filter = "all"
 
-        search_query = f'"{stock_name}"'
-        submissions = self.reddit.subreddit("all").search(
-            search_query, sort="new", time_filter=time_filter, limit=None
-        )
+            search_query = f'"{stock_name}"'
+            async for submission in self.reddit.subreddit("all").search(
+                search_query, sort="new", time_filter=time_filter, limit=None
+            ):
+                created_utc = datetime.utcfromtimestamp(submission.created_utc)
+                if created_utc < since_time:
+                    continue
 
-        for submission in submissions:
-            created_utc = datetime.utcfromtimestamp(submission.created_utc)
-            # Extra check in code (some time_filter can still bring older posts)
-            if created_utc < since_time:
-                continue
+                combined_text = f"{submission.title} {submission.selftext}"
+                upvotes = submission.score or 0
 
-            combined_text = f"{submission.title} {submission.selftext}"
-            # Upvote details
-            upvotes = submission.score if submission.score else 0
+                posts.append(
+                    {
+                        "date": created_utc.isoformat(),
+                        "text": combined_text,
+                        "upvotes": upvotes,
+                    }
+                )
 
-            posts.append(
-                {
-                    "date": created_utc.isoformat(),
-                    "text": combined_text,
-                    "upvotes": upvotes,
-                }
-            )
-
-        df = pd.DataFrame(posts)
-        # If there's no data, just return empty
-        if df.empty:
-            print("No Reddit data found for the specified date range.")
+            df = pd.DataFrame(posts)
+            if df.empty:
+                print("No Reddit data found for the specified date range.")
             return df
-
-        self.data.append(df)
-        return df
 
     ############################################################################
     #                           FINVIZ SCRAPING
@@ -415,11 +405,7 @@ class Scrap:
     def analyze_sentiment(self, df, text_column="text", weight_column=None):
         """
         Uses FinBERT to analyze sentiment (positive/negative/neutral).
-        If `weight_column` is provided (e.g. "upvotes" or "likes"),
-        it computes a weighted sentiment. Otherwise, it uses simple counts.
-        Returns:
-          - The updated DataFrame with sentiment_label and sentiment_score
-          - A final textual prediction ("UP", "DOWN", or "NEUTRAL").
+        Handles missing or invalid data gracefully.
         """
         if df.empty:
             print("No data to analyze for sentiment. Defaulting to NEUTRAL.")
@@ -440,15 +426,19 @@ class Scrap:
             tokens = tokenizer.encode(text, truncation=True, max_length=max_length)
             return tokenizer.decode(tokens, skip_special_tokens=True)
 
-        # Run FinBERT on each text row
-        sentiments = df[text_column].apply(
-            lambda t: sentiment_analysis(truncate_text(t))[0]
-        )
-        df["sentiment_label"] = sentiments.apply(lambda x: x["label"].lower())
-        df["sentiment_score"] = sentiments.apply(lambda x: x["score"])
+        # Run FinBERT on each text row and add sentiment columns
+        try:
+            sentiments = df[text_column].apply(
+                lambda t: sentiment_analysis(truncate_text(t))[0]
+            )
+            df["sentiment_label"] = sentiments.apply(lambda x: x["label"].lower())
+            df["sentiment_score"] = sentiments.apply(lambda x: x["score"])
+        except Exception as e:
+            print(f"Error during sentiment analysis: {e}")
+            df["sentiment_label"] = "neutral"
+            df["sentiment_score"] = 0
 
         # Weighted approach
-        # If there's no weight_column, default all weights to 1
         if weight_column and weight_column in df.columns:
             df["weight"] = df[weight_column].fillna(1).astype(float).clip(lower=1)
         else:
@@ -472,24 +462,19 @@ class Scrap:
             else:
                 weighted_neutral += w
 
-        # Avoid divide-by-zero
         if total_weight == 0:
-            return df, "The stock sentiment is NEUTRAL. (No weights)"
+            pos_share = neg_share = neu_share = 0  # Default to zero
+        else:
+            pos_share = weighted_positive / total_weight
+            neg_share = weighted_negative / total_weight
+            neu_share = weighted_neutral / total_weight
 
-        # Weighted proportions
-        pos_share = weighted_positive / total_weight
-        neg_share = weighted_negative / total_weight
-        neu_share = weighted_neutral / total_weight
-
-        # Debug
         print("Weighted sentiment distribution:")
         print(f"  Positive: {pos_share:.2f}")
         print(f"  Negative: {neg_share:.2f}")
         print(f"  Neutral:  {neu_share:.2f}")
 
-        # Final logic
-        # You can adjust thresholds here. E.g., you might require
-        # pos_share > 0.60 for "UP", neg_share > 0.60 for "DOWN".
+        # Final prediction logic
         if pos_share > neg_share and pos_share >= 0.4:
             prediction = "The stock is predicted to go UP based on the sentiments."
         elif neg_share > pos_share and neg_share >= 0.4:

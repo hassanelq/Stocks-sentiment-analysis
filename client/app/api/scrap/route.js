@@ -18,11 +18,11 @@ export async function POST(request) {
 
     if (response.ok) {
       const data = await response.json();
-      return NextResponse.json(data);
+      return NextResponse.json(data); // Return the data to the client
     } else {
       const errorData = await response.json();
       return NextResponse.json(
-        { error: errorData.detail },
+        { error: errorData.detail || "Failed to fetch data" },
         { status: response.status }
       );
     }
