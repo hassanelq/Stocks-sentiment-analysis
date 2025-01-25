@@ -5,6 +5,7 @@ db.sqlite3
 migrations/
 media/
 settings.py
+cookies.json
 # C extensions
 *.so
 
