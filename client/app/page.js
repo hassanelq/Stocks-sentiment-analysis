@@ -61,7 +61,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-gray-800 text-white shadow-lg rounded-lg p-8">
         <h1 className="text-3xl font-bold mb-6 text-center">
-          Stock Data Scraper
+          Stock Prediction App
         </h1>
         <div className="mb-5">
           <label className="block font-medium mb-2">Stock Symbol:</label>
@@ -134,7 +134,7 @@ export default function Home() {
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {loading ? "Scraping..." : "Scrap"}
+          {loading ? "Scraping..." : "Scrap & Predict"}
         </button>
 
         {results && (
