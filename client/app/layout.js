@@ -5,13 +5,13 @@ import Footer from "./Components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// Metadata specific to the Simulations Project
-let title = "Simulations Hub - Monte Carlo, Brownian Motion & More";
+// Metadata specific to the Sentiment Analysis Project
+let title = "Sentiment-Based Stock Prediction Hub";
 let description =
-  "Explore advanced simulations, including Monte Carlo, Brownian Motion, and Portfolio Income Analysis.";
-let url = "https://simulations-mc.vercel.app/";
-let ogimage = "/images/ogimage.png";
-let sitename = "Simulations Hub";
+  "Explore the intersection of sentiment analysis and stock market predictions with a tool analyzing data from Reddit, Twitter, and Finviz.";
+let url = "https://sentiment-stock-prediction.vercel.app/";
+let ogimage = "/images/sentiment-ogimage.png";
+let sitename = "Sentiment-Based Stock Prediction";
 
 export const metadata = {
   metadataBase: new URL(url),

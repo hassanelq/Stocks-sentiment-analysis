@@ -3,14 +3,14 @@ const CTA = () => (
     <div className="custom-screen">
       <div className="max-w-2xl mx-auto text-center">
         <h2 className="text-gray-800 text-3xl font-semibold sm:text-4xl">
-          Explore and Contribute to Our Simulations Hub
+          Explore and Contribute to Our Platform
         </h2>
         <p className="mt-3 text-gray-600">
-          Our platform is open source. Dive into the code, enhance simulations,
+          Our platform is open source. Dive into the code, enhance predictions,
           or build your own!
         </p>
         <a
-          href="https://github.com/hassanelq/Simulations-MC-BrownMotion"
+          href="https://github.com/hassanelq/Stocks-sentiment-analysis"
           target="_blank"
           className="mt-4 inline-flex justify-center items-center gap-2 font-medium text-sm text-white bg-gray-800 hover:bg-gray-600 active:bg-gray-900 max-w-[200px] py-2.5 px-4 text-center rounded-lg duration-150"
         >
