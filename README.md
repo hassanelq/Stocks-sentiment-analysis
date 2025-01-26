@@ -37,29 +37,26 @@ This cleaning ensures that the textual data used for sentiment analysis is clean
 
 ## Example Usage
 
-The user can input a stock ticker, select the platforms to analyze (Reddit, Twitter, Finviz), and specify the time range for scraping data. After submitting the form, the app displays the predicted stock direction, along with detailed statistics and sentiment charts.
 
-**Example Results:**
 
-**Prediction Summary:**
+### Interface utilisateur
 
-- **Stock:** TSLA
-- **Platforms:** finviz
-- **Prediction:** The stock is predicted to go **UP** based on the sentiments.
+**Formulaire d'entrée**  
+L'utilisateur peut entrer un **ticker de stock**, sélectionner le nombre de jours pour le scraping et choisir les plateformes (Twitter, Finviz, Reddit).  
+![Formulaire d'entrée](./screenshots/form-input.png)
 
-**Detailed Stats:**
+---
 
-- Total Posts/Tweets: 49
-- Positive: 12
-- Negative: 6
-- Neutral: 31
-- Average Sentiment Score: 0.967
+**Résultats et Prédictions**  
+Après soumission, l'application affiche les prédictions suivantes :  
+![Résultats](./screenshots/results.png)
 
-**Sentiment Distribution:**
-- (Graphical representation of sentiment distribution)
+---
 
-**Sentiment Over Time:**
-- (Graphical representation of sentiment over time)
+**Distribution des sentiments et graphiques**  
+Une visualisation détaillée des scores de sentiment au fil du temps.  
+![Graphiques](./screenshots/sentiment-chart.png)
+
 
 ## Installation
 
