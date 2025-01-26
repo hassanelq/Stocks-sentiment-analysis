@@ -68,30 +68,4 @@ The user can input a stock ticker, select the platforms to analyze (Reddit, Twit
 1. Clone this repository:
    ```bash
    git clone https://github.com/your-username/Stock-Sentiment-Analysis.git
-2. Install Python dependencies:
-  ```bash
-   cd Server
-   pip install -r requirements.txt
-3. Install Next.js dependencies:
-   ```bash
-    cd frontend
-    npm install
-
-## Running the API
-
-1. In the frontend folder, run the Next.js application:
-    ```bash
-     npm run dev
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Authors
-
- Achraf HAJJI
-Hassan EL QADI
-
-
-
-
+2
