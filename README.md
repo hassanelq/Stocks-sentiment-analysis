@@ -81,7 +81,7 @@ The user can input a stock ticker, select the platforms to analyze (Reddit, Twit
 
 1. In the Server folder, run the FastAPI application:
     ```bash
-   npm run dev
+   uvicorn main:app --reload
 
 3. In the frontend folder, run the Next.js application:
    ```bash
