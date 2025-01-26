@@ -66,6 +66,15 @@ The user can input a stock ticker, select the platforms to analyze (Reddit, Twit
 ### Prerequisites
 
 1. Clone this repository:
-   ```bash
+      ```bash
    git clone https://github.com/your-username/Stock-Sentiment-Analysis.git
-2
+
+2. Install Python dependencies:
+      ```bash
+   git clone https://github.com/your-username/Stock-Sentiment-Analysis.git
+3. Install Next.js dependencies:
+      ```bash
+   cd frontend
+   npm install
+
+
