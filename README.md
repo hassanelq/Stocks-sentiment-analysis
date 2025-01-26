@@ -41,9 +41,13 @@ This cleaning ensures that the textual data used for sentiment analysis is clean
 
 ### Interface utilisateur
 
+
+
 **Formulaire d'entrée**  
 L'utilisateur peut entrer un **ticker de stock**, sélectionner le nombre de jours pour le scraping et choisir les plateformes (Twitter, Finviz, Reddit).  
 ![Formulaire d'entrée](./screenshots/form-input.jpg)
+
+
 
 ---
 
@@ -51,11 +55,18 @@ L'utilisateur peut entrer un **ticker de stock**, sélectionner le nombre de jou
 Après soumission, l'application affiche les prédictions suivantes :  
 ![Résultats](./screenshots/results.jpg)
 
+
+
 ---
+
+
 
 **Distribution des sentiments et graphiques**  
 Une visualisation détaillée des scores de sentiment au fil du temps.  
-![Graphiques](./screenshots/sentiment-chart.png)
+![Graphiques](./screenshots/sentiment-chart.jpg)
+
+
+
 
 
 ## Installation
