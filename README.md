@@ -43,13 +43,13 @@ This cleaning ensures that the textual data used for sentiment analysis is clean
 
 **Formulaire d'entrée**  
 L'utilisateur peut entrer un **ticker de stock**, sélectionner le nombre de jours pour le scraping et choisir les plateformes (Twitter, Finviz, Reddit).  
-![Formulaire d'entrée](./screenshots/form-input.png)
+![Formulaire d'entrée](./screenshots/form-input.jpg)
 
 ---
 
 **Résultats et Prédictions**  
 Après soumission, l'application affiche les prédictions suivantes :  
-![Résultats](./screenshots/results.png)
+![Résultats](./screenshots/results.jpg)
 
 ---
 
