@@ -78,3 +78,23 @@ The user can input a stock ticker, select the platforms to analyze (Reddit, Twit
    npm install
 
 
+### Running the API
+
+1.In the Server folder, run the FastAPI application:
+      ```bash
+   uvicorn main:app --reload
+
+2.In the frontend folder, run the Next.js application:
+      ```bash
+   npm run dev
+
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Authors
+Achraf HAJJI
+Hassan EL QADI
+
+
+
