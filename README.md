@@ -43,7 +43,7 @@ This cleaning ensures that the textual data used for sentiment analysis is clean
 **Input Form**  
 The user can enter a **stock ticker**, select the number of days for scraping, and choose the platforms (Twitter, Finviz, Reddit).  
 
-<img src="./screenshots/form-input.jpg" alt="Input Form" width="600">
+<img src="./screenshots/form-input.jpg" alt="Input Form" width="300">
 
 ---
 
