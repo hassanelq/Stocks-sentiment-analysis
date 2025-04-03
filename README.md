@@ -35,42 +35,11 @@ This web application analyzes recent sentiment data for a given stock symbol usi
 ## 🛠 Tech Stack
 
 - **Backend**: FastAPI
-- **Frontend**: HTML + CSS (rendered templates)
+- **Frontend**: Next.js , Tailwind css
 - **Scraping**: BeautifulSoup, Requests, AsyncPRAW, Twikit
 - **NLP**: HuggingFace Transformers, PyTorch
 - **Data**: Pandas, NumPy, scikit-learn
-- **Visualization**: Matplotlib / Plotly / Chart.js (depending on setup)
-
----
-
-## 📦 Installation
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/your-username/stock-sentiment-predictor.git
-cd stock-sentiment-predictor
-```
-
-### 2. Install dependencies (inside a virtual environment)
-
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-> Make sure to use `numpy<2.0` to ensure compatibility with PyTorch.
-
----
-
-## 🐳 Run with Docker
-
-```bash
-docker build -t sentiment-predictor .
-docker run -p 8000:8000 sentiment-predictor
-```
-
-Then open your browser at [http://localhost:8000](http://localhost:8000)
+- **Visualization**: Chart.js
 
 ---
 
