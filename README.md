@@ -2,6 +2,8 @@
 
 This web application analyzes recent sentiment data for a given stock symbol using sources like **Reddit**, **Twitter**, and **Finviz**. It provides detailed sentiment statistics and predicts whether the stock is likely to go **UP** or **DOWN**.
 
+![Img](https://github.com/user-attachments/assets/d7551c35-e099-4568-acbe-e8fa6ab2907d)
+
 ---
 
 ## 🚀 Features
