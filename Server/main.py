@@ -81,6 +81,8 @@ async def scrap_data(request: ScrapRequest):
         # RUN sentiment analysis
         df_sentiment, prediction = scrap.analyze_sentiment(df_clean)
 
+        await scrap.close()
+
         # Prepare the final response
         data = df_sentiment.to_dict(orient="records")
         for record in data:

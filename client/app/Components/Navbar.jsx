@@ -102,7 +102,7 @@ const Navbar = () => {
                   href="/start"
                   className="block font-medium text-sm text-white bg-gray-800 hover:bg-gray-600 active:bg-gray-900 md:inline"
                 >
-                  Start Simulations
+                  Start Analysis
                 </NavLink>
               </li>
             </ul>

@@ -1,5 +1,3 @@
-import os
-import time
 import re
 import asyncio
 import requests
@@ -27,11 +25,22 @@ from nltk.corpus import stopwords
 # Transformers (FinBERT)
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
-# Dotenv
-from dotenv import load_dotenv, dotenv_values
 
-# Load environment variables
-load_dotenv()
+REDDIT_CLIENT_ID = "XXX"
+REDDIT_CLIENT_SECRET = "XXX"
+REDDIT_USER_AGENT = "Stocks sentiment analysis"
+
+cookies = {
+    "XXX": "XXX",
+}
+
+finbert_tokenizer = AutoTokenizer.from_pretrained("yiyanghkust/finbert-tone")
+finbert_model = AutoModelForSequenceClassification.from_pretrained(
+    "yiyanghkust/finbert-tone"
+)
+finbert_pipeline = pipeline(
+    "sentiment-analysis", model=finbert_model, tokenizer=finbert_tokenizer
+)
 
 
 class Scrap:
@@ -51,13 +60,13 @@ class Scrap:
         """
         self.data = []
         self.reddit = asyncpraw.Reddit(
-            client_id=os.getenv("REDDIT_CLIENT_ID"),
-            client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
-            user_agent=os.getenv("REDDIT_USER_AGENT"),
+            client_id=REDDIT_CLIENT_ID,
+            client_secret=REDDIT_CLIENT_SECRET,
+            user_agent=REDDIT_USER_AGENT,
         )
 
         self.twitter_client = Client(language="en-US")
-        self.twitter_client.load_cookies("cookies.json")  # Twitter cookies
+        self.twitter_client.set_cookies(cookies)
 
         try:
             nltk.data.find("corpora/stopwords")
@@ -66,52 +75,51 @@ class Scrap:
 
         self.stop_words = set(stopwords.words("english"))
 
-        ############################################################################
-        #                           REDDIT SCRAPING
-        ############################################################################
+    async def close(self):
+        await self.reddit.close()
 
-        async def scrap_reddit(self, stock_name, days=7):
-            """
-            Scrapes Reddit for mentions of `stock_name` within the past `days`.
-            Returns a DataFrame with columns: [date, text, upvotes]
-            """
-            posts = []
-            now = datetime.utcnow()
-            since_time = now - timedelta(days=days)
+    ############################################################################
+    #                           REDDIT SCRAPING
+    ############################################################################
 
-            # Use the search query with asyncpraw
-            if days <= 7:
-                time_filter = "week"
-            elif days <= 30:
-                time_filter = "month"
-            elif days <= 365:
-                time_filter = "year"
-            else:
-                time_filter = "all"
+    async def scrap_reddit(self, stock_name, days=7):
+        posts = []
+        now = datetime.now(timezone.utc)
+        since_time = now - timedelta(days=days)
 
-            search_query = f'"{stock_name}"'
-            async for submission in self.reddit.subreddit("all").search(
-                search_query, sort="new", time_filter=time_filter, limit=None
-            ):
-                created_utc = datetime.utcfromtimestamp(submission.created_utc)
-                if created_utc < since_time:
-                    continue
+        if days <= 7:
+            time_filter = "week"
+        elif days <= 30:
+            time_filter = "month"
+        elif days <= 365:
+            time_filter = "year"
+        else:
+            time_filter = "all"
 
-                combined_text = f"{submission.title} {submission.selftext}"
-                upvotes = submission.score or 0
+        search_query = f'"{stock_name}"'
+        subreddit = await self.reddit.subreddit("all")
+        async for submission in subreddit.search(
+            search_query, sort="new", time_filter=time_filter, limit=None
+        ):
+            created_utc = datetime.fromtimestamp(submission.created_utc, timezone.utc)
+            if created_utc < since_time:
+                continue
 
-                posts.append(
-                    {
-                        "date": created_utc.isoformat(),
-                        "text": combined_text,
-                        "upvotes": upvotes,
-                    }
-                )
+            combined_text = f"{submission.title} {submission.selftext}"
+            upvotes = submission.score or 0
 
-            df = pd.DataFrame(posts)
-            if df.empty:
-                print("No Reddit data found for the specified date range.")
-            return df
+            posts.append(
+                {
+                    "date": created_utc.isoformat(),
+                    "text": combined_text,
+                    "upvotes": upvotes,
+                }
+            )
+
+        df = pd.DataFrame(posts)
+        if df.empty:
+            print("No Reddit data found for the specified date range.")
+        return df
 
     ############################################################################
     #                           FINVIZ SCRAPING
@@ -405,31 +413,19 @@ class Scrap:
     def analyze_sentiment(self, df, text_column="text", weight_column=None):
         """
         Uses FinBERT to analyze sentiment (positive/negative/neutral).
-        Handles missing or invalid data gracefully.
+        Returns DataFrame with sentiment columns + final string prediction.
         """
         if df.empty:
             print("No data to analyze for sentiment. Defaulting to NEUTRAL.")
             return df, "The stock sentiment is NEUTRAL. (No data)"
 
-        # Load FinBERT
-        tokenizer = AutoTokenizer.from_pretrained("yiyanghkust/finbert-tone")
-        model = AutoModelForSequenceClassification.from_pretrained(
-            "yiyanghkust/finbert-tone"
-        )
-        sentiment_analysis = pipeline(
-            "sentiment-analysis", model=model, tokenizer=tokenizer
-        )
-        max_length = 512
-
         def truncate_text(text):
-            # Tokenize + keep only the allowed length
-            tokens = tokenizer.encode(text, truncation=True, max_length=max_length)
-            return tokenizer.decode(tokens, skip_special_tokens=True)
+            tokens = finbert_tokenizer.encode(text, truncation=True, max_length=512)
+            return finbert_tokenizer.decode(tokens, skip_special_tokens=True)
 
-        # Run FinBERT on each text row and add sentiment columns
         try:
             sentiments = df[text_column].apply(
-                lambda t: sentiment_analysis(truncate_text(t))[0]
+                lambda t: finbert_pipeline(truncate_text(t))[0]
             )
             df["sentiment_label"] = sentiments.apply(lambda x: x["label"].lower())
             df["sentiment_score"] = sentiments.apply(lambda x: x["score"])
@@ -438,93 +434,39 @@ class Scrap:
             df["sentiment_label"] = "neutral"
             df["sentiment_score"] = 0
 
-        # Weighted approach
+        # Set weights (likes, upvotes, or default)
         if weight_column and weight_column in df.columns:
             df["weight"] = df[weight_column].fillna(1).astype(float).clip(lower=1)
         else:
             df["weight"] = 1.0
 
-        # Summation structures
-        weighted_positive = 0.0
-        weighted_negative = 0.0
-        weighted_neutral = 0.0
-        total_weight = 0.0
+        sentiment_weights = df.groupby("sentiment_label")["weight"].sum()
+        total_weight = sentiment_weights.sum()
 
-        for _, row in df.iterrows():
-            label = row["sentiment_label"]
-            w = row["weight"]
-            total_weight += w
-
-            if label == "positive":
-                weighted_positive += w
-            elif label == "negative":
-                weighted_negative += w
-            else:
-                weighted_neutral += w
+        pos = sentiment_weights.get("positive", 0.0)
+        neg = sentiment_weights.get("negative", 0.0)
+        neu = sentiment_weights.get("neutral", 0.0)
 
         if total_weight == 0:
-            pos_share = neg_share = neu_share = 0  # Default to zero
+            pos_share = neg_share = neu_share = 0
         else:
-            pos_share = weighted_positive / total_weight
-            neg_share = weighted_negative / total_weight
-            neu_share = weighted_neutral / total_weight
+            pos_share = pos / total_weight
+            neg_share = neg / total_weight
+            neu_share = neu / total_weight
 
         print("Weighted sentiment distribution:")
         print(f"  Positive: {pos_share:.2f}")
         print(f"  Negative: {neg_share:.2f}")
         print(f"  Neutral:  {neu_share:.2f}")
 
-        # Final prediction logic
-        if pos_share > neg_share and pos_share >= 0.4:
+        # Final prediction
+        if max(pos_share, neg_share, neu_share) < 0.4:
+            prediction = "The stock sentiment is NEUTRAL."
+        elif pos_share > neg_share:
             prediction = "The stock is predicted to go UP based on the sentiments."
-        elif neg_share > pos_share and neg_share >= 0.4:
+        elif neg_share > pos_share:
             prediction = "The stock is predicted to go DOWN based on the sentiments."
         else:
             prediction = "The stock sentiment is NEUTRAL."
 
         return df, prediction
-
-
-# ------------------ Example usage (synchronous part) ------------------ #
-# if __name__ == "__main__":
-#     """
-#     Simple demonstration of how you might use the 'Scrap' class.
-#     """
-#     scraper = Scrap()
-
-#     # ---- Reddit ----
-#     reddit_data = scraper.scrap_reddit("TSLA", days=3)
-#     reddit_data_clean = scraper.clean_text_data(reddit_data, text_column="text")
-
-#     # ---- FinViz ----
-#     finviz_data = scraper.scrap_finviz("TSLA", days=3)
-#     finviz_data_clean = scraper.clean_text_data(finviz_data, text_column="text")
-
-#     # ---- Twitter (needs async run) ----
-#     async def get_twitter_data():
-#         return await scraper.scrap_twitter("TSLA", days=1, max_tweets=100)
-
-#     loop = asyncio.get_event_loop()
-#     twitter_data = loop.run_until_complete(get_twitter_data())
-#     twitter_data_clean = scraper.clean_text_data(twitter_data, text_column="text")
-
-#     # Combine all data
-#     combined_df = pd.concat([reddit_data_clean, finviz_data_clean, twitter_data_clean], ignore_index=True)
-
-#     # If you want to do a single sentiment pass on combined data:
-#     # Weighted by upvotes for Reddit, likes for Twitter. If both columns exist, pick one or sum them.
-#     # We'll unify them under a single column called 'weight' for demonstration:
-#     # Priority: 'upvotes' if they exist, else 'likes'
-#     if "upvotes" in combined_df.columns:
-#         combined_df["weight"] = combined_df.get("upvotes", 1)
-#     elif "likes" in combined_df.columns:
-#         combined_df["weight"] = combined_df.get("likes", 1)
-#     else:
-#         combined_df["weight"] = 1
-
-#     # Analyze
-#     sentiment_df, final_prediction = scraper.analyze_sentiment(
-#         combined_df, text_column="text", weight_column="weight"
-#     )
-
-#     print("Final Prediction:", final_prediction)
