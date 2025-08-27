@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
   const { stock, platforms, days, max_tweets } = await request.json();
 
-  const apiUrl = `http://127.0.0.1:8000/scrap`;
+  // const apiUrl = `http://localhost:8000/scrap`;
+  const apiUrl = `https://stocks-sentiment-analysis.fly.dev/scrap`;
 
   try {
     const response = await fetch(apiUrl, {
